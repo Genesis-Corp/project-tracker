@@ -19,28 +19,35 @@ export const useIdeaStore = create<IdeaStore>((set) => ({
 
   fetch: async () => {
     set({ loading: true })
-    const { data } = await supabase.from('ideas').select('*').order('created_at', { ascending: false })
-    set({ ideas: data ?? [], loading: false })
+    try {
+      const { data } = await supabase.from('ideas').select('*').order('created_at', { ascending: false })
+      set({ ideas: data ?? [] })
+    } finally {
+      set({ loading: false })
+    }
   },
 
   add: async (data) => {
-    const { data: row } = await supabase.from('ideas').insert(data).select().single()
+    const { data: row, error } = await supabase.from('ideas').insert(data).select().single()
+    if (error) throw error
     if (row) set((s) => ({ ideas: [row, ...s.ideas] }))
     return row ?? null
   },
 
   update: async (id, updates) => {
-    const { data: row } = await supabase
+    const { data: row, error } = await supabase
       .from('ideas')
       .update({ ...updates, updated_at: new Date().toISOString() })
       .eq('id', id)
       .select()
       .single()
+    if (error) throw error
     if (row) set((s) => ({ ideas: s.ideas.map((i) => (i.id === id ? row : i)) }))
   },
 
   remove: async (id) => {
-    await supabase.from('ideas').delete().eq('id', id)
+    const { error } = await supabase.from('ideas').delete().eq('id', id)
+    if (error) throw error
     set((s) => ({ ideas: s.ideas.filter((i) => i.id !== id) }))
   },
 }))

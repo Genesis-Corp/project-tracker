@@ -32,24 +32,30 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
 
   fetch: async () => {
     set({ loading: true })
-    const { data } = await supabase.from('projects').select('*').order('created_at', { ascending: false })
-    set({ projects: data ?? [], loading: false })
+    try {
+      const { data } = await supabase.from('projects').select('*').order('created_at', { ascending: false })
+      set({ projects: data ?? [] })
+    } finally {
+      set({ loading: false })
+    }
   },
 
   add: async (data) => {
-    const { data: row } = await supabase.from('projects').insert(data).select().single()
+    const { data: row, error } = await supabase.from('projects').insert(data).select().single()
+    if (error) throw error
     if (row) set((s) => ({ projects: [row, ...s.projects] }))
     return row ?? null
   },
 
   update: async (id, updates) => {
     const current = get().projects.find((p) => p.id === id)
-    const { data: row } = await supabase
+    const { data: row, error } = await supabase
       .from('projects')
       .update({ ...updates, updated_at: new Date().toISOString() })
       .eq('id', id)
       .select()
       .single()
+    if (error) throw error
 
     if (row) {
       const historyEntries: string[] = []
@@ -60,8 +66,10 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         historyEntries.push(`Priority changed to ${updates.priority}`)
       }
       for (const summary of historyEntries) {
-        await supabase.from('project_history').insert({ project_id: id, change_summary: summary })
+        const { error: histError } = await supabase.from('project_history').insert({ project_id: id, change_summary: summary })
+        if (histError) console.error('Failed to log project history:', histError)
       }
+      // Only refresh history cache if it was already loaded; fetchHistory will hydrate it fresh when the detail panel opens
       if (historyEntries.length > 0 && get().history[id]) {
         const { data: hist } = await supabase
           .from('project_history')
@@ -75,7 +83,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   },
 
   remove: async (id) => {
-    await supabase.from('projects').delete().eq('id', id)
+    const { error } = await supabase.from('projects').delete().eq('id', id)
+    if (error) throw error
     set((s) => {
       const tasks = { ...s.tasks }
       const history = { ...s.history }
@@ -95,7 +104,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   },
 
   addTask: async (task) => {
-    const { data: row } = await supabase.from('tasks').insert(task).select().single()
+    const { data: row, error } = await supabase.from('tasks').insert(task).select().single()
+    if (error) throw error
     if (row) {
       set((s) => ({
         tasks: {
@@ -107,7 +117,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   },
 
   updateTask: async (id, updates) => {
-    const { data: row } = await supabase.from('tasks').update(updates).eq('id', id).select().single()
+    const { data: row, error } = await supabase.from('tasks').update(updates).eq('id', id).select().single()
+    if (error) throw error
     if (row) {
       set((s) => ({
         tasks: Object.fromEntries(
@@ -121,7 +132,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   },
 
   removeTask: async (id, projectId) => {
-    await supabase.from('tasks').delete().eq('id', id)
+    const { error } = await supabase.from('tasks').delete().eq('id', id)
+    if (error) throw error
     set((s) => ({
       tasks: {
         ...s.tasks,
