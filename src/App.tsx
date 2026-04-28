@@ -1,68 +1,32 @@
-import { createClient } from '@supabase/supabase-js'
-import {
-  Bell,
-  Blocks,
-  Bot,
-  CalendarClock,
-  CheckCircle2,
-  ChevronRight,
-  Clock3,
-  Database,
-  ExternalLink,
-  Flame,
-  Gauge,
-  Globe2,
-  Inbox,
-  Laptop,
-  Lightbulb,
-  Link2,
-  ListChecks,
-  MonitorSmartphone,
-  Plus,
-  RefreshCcw,
-  Search,
-  Sparkles,
-  Tag,
-  TimerReset,
-} from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
-import type { FormEvent } from 'react'
-import './App.css'
+import { useState } from 'react'
+import Sidebar from './components/shared/Sidebar'
+import Dashboard from './pages/Dashboard'
+import Accounts from './pages/Accounts'
+import Projects from './pages/Projects'
+import Ideas from './pages/Ideas'
 
-type AccountStatus = 'Ready' | 'Limited' | 'Exhausted'
-type ProjectStatus = 'Inbox' | 'Active' | 'Waiting' | 'Blocked' | 'Done'
-type Priority = 'Urgent' | 'High' | 'Medium' | 'Low'
-type TaskStatus = 'todo' | 'done'
+export type Page = 'dashboard' | 'accounts' | 'projects' | 'ideas'
 
-type Account = {
-  id: string
-  name: string
-  platform: string
-  model: string
-  login_method: 'Browser' | 'Desktop App' | 'Mobile App'
-  browser: string
-  device: string
-  limit_type: string
-  usage_current: number
-  usage_limit: number
-  reset_at: string
-  tags: string[]
-  status: AccountStatus
+const pageMap: Record<Page, React.ComponentType> = {
+  dashboard: Dashboard,
+  accounts: Accounts,
+  projects: Projects,
+  ideas: Ideas,
 }
 
-type Project = {
-  id: string
-  name: string
-  account_id: string
-  continued_from_account_id: string
-  status: ProjectStatus
-  priority: Priority
-  due_date: string
-  conversation_url: string
-  context_snapshot: string
-  tags: string[]
-  created_at: string
-  updated_at: string
+export default function App() {
+  const [currentPage, setCurrentPage] = useState<Page>('dashboard')
+  const CurrentPage = pageMap[currentPage]
+
+  return (
+    <div className="flex h-screen bg-gray-950 text-white">
+      <Sidebar currentPage={currentPage} onPageChange={setCurrentPage} />
+      <main className="flex-1 overflow-auto">
+        <CurrentPage />
+      </main>
+    </div>
+  )
+}
 }
 
 type Task = {
