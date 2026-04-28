@@ -13,13 +13,13 @@
 
 @layer components {
   .input {
-    @apply w-full bg-surface-2 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-violet-500/50 transition-colors;
+    @apply w-full bg-surface-2 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-accent-account/50 transition-colors;
   }
   select.input {
     @apply cursor-pointer;
   }
   .btn-primary {
-    @apply px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium rounded-xl transition-colors cursor-pointer;
+    @apply px-4 py-2 bg-accent-account hover:bg-accent-account/80 text-white text-sm font-medium rounded-xl transition-colors cursor-pointer;
   }
   .btn-secondary {
     @apply px-4 py-2 bg-white/10 hover:bg-white/20 text-gray-300 text-sm font-medium rounded-xl transition-colors cursor-pointer;
