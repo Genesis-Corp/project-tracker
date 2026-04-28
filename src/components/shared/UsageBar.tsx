@@ -17,7 +17,14 @@ export function UsageBar({ used, total, type }: Props) {
         </span>
         <span>{Math.round(pct)}%</span>
       </div>
-      <div className="h-1.5 bg-surface-2 rounded-full overflow-hidden">
+      <div
+        className="h-1.5 bg-surface-2 rounded-full overflow-hidden"
+        role="progressbar"
+        aria-label={`${used} of ${total} ${type} used (${Math.round(pct)}%)`}
+        aria-valuenow={used}
+        aria-valuemin={0}
+        aria-valuemax={total}
+      >
         <div
           className={`h-full ${barColor} rounded-full transition-all duration-500`}
           style={{ width: `${pct}%` }}

@@ -9,7 +9,6 @@ export function CountdownTimer({ resetAt }: Props) {
   const [seconds, setSeconds] = useState(() => getSecondsRemaining(resetAt))
 
   useEffect(() => {
-    setSeconds(getSecondsRemaining(resetAt))
     if (!resetAt) return
     const id = setInterval(() => setSeconds(getSecondsRemaining(resetAt)), 1000)
     return () => clearInterval(id)
