@@ -27,6 +27,7 @@ export function Sidebar({ activePage, setActivePage }: Props) {
             <button
               key={page}
               onClick={() => setActivePage(page)}
+              aria-current={active ? 'page' : undefined}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left
                 ${active ? `bg-white/10 ${activeColor}` : 'text-gray-500 hover:text-gray-200 hover:bg-white/5'}`}
             >
