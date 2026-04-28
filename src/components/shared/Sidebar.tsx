@@ -1,40 +1,41 @@
-import { LayoutDashboard, Bot, FolderKanban, Lightbulb } from 'lucide-react';
+import { LayoutDashboard, Bot, FolderKanban, Lightbulb } from 'lucide-react'
+import type { Page } from '../../App'
 
 interface Props {
-  currentPage: string;
-  onPageChange: (page: string) => void;
+  activePage: Page
+  setActivePage: (page: Page) => void
 }
 
-const NAV_ITEMS = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, activeColor: 'text-blue-400' },
-  { id: 'accounts', label: 'Accounts', icon: Bot, activeColor: 'text-emerald-400' },
-  { id: 'projects', label: 'Projects', icon: FolderKanban, activeColor: 'text-orange-400' },
-  { id: 'ideas', label: 'Ideas', icon: Lightbulb, activeColor: 'text-yellow-400' },
-];
+const nav: { page: Page; label: string; Icon: React.ElementType; activeColor: string }[] = [
+  { page: 'dashboard', label: 'Dashboard', Icon: LayoutDashboard, activeColor: 'text-white' },
+  { page: 'accounts', label: 'Accounts', Icon: Bot, activeColor: 'text-violet-400' },
+  { page: 'projects', label: 'Projects', Icon: FolderKanban, activeColor: 'text-orange-400' },
+  { page: 'ideas', label: 'Ideas', Icon: Lightbulb, activeColor: 'text-teal-400' },
+]
 
-export default function Sidebar({ currentPage, onPageChange }: Props) {
+export function Sidebar({ activePage, setActivePage }: Props) {
   return (
-    <aside className="w-64 bg-gray-900 border-r border-gray-800 p-4 flex flex-col">
-      <h1 className="text-xl font-bold text-white mb-8">AI Project Tracker</h1>
-      <nav className="space-y-2 flex-1">
-        {NAV_ITEMS.map(({ id, label, icon: Icon, activeColor }) => (
-          <button
-            key={id}
-            onClick={() => onPageChange(id)}
-            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
-              currentPage === id
-                ? `${activeColor} bg-gray-800`
-                : 'text-gray-400 hover:text-white hover:bg-gray-800'
-            }`}
-          >
-            <Icon size={20} />
-            <span>{label}</span>
-          </button>
-        ))}
-      </nav>
-      <div className="pt-4 border-t border-gray-800 text-xs text-gray-500">
-        v1.0.0
+    <aside className="w-56 min-h-screen bg-surface border-r border-white/10 flex flex-col p-4 shrink-0">
+      <div className="mb-8 px-1">
+        <h1 className="text-lg font-bold text-white">AI Tracker</h1>
+        <p className="text-xs text-gray-600 mt-0.5">Your AI command centre</p>
       </div>
+      <nav className="flex flex-col gap-1">
+        {nav.map(({ page, label, Icon, activeColor }) => {
+          const active = activePage === page
+          return (
+            <button
+              key={page}
+              onClick={() => setActivePage(page)}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left
+                ${active ? `bg-white/10 ${activeColor}` : 'text-gray-500 hover:text-gray-200 hover:bg-white/5'}`}
+            >
+              <Icon size={18} className={active ? activeColor : ''} />
+              {label}
+            </button>
+          )
+        })}
+      </nav>
     </aside>
-  );
+  )
 }
