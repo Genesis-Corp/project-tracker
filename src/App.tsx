@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Sidebar } from './components/shared/Sidebar'
+import { QuickCapture } from './components/shared/QuickCapture'
 import { Dashboard } from './pages/Dashboard'
 import { Accounts } from './pages/Accounts'
 import { Projects } from './pages/Projects'
@@ -23,6 +24,7 @@ export default function App() {
       <main className="flex-1 p-6 overflow-auto min-h-screen">
         {pages[activePage]}
       </main>
+      <QuickCapture />
     </div>
   )
 }
