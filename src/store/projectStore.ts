@@ -21,6 +21,7 @@ interface ProjectStore {
   removeTask: (id: string, projectId: string) => Promise<void>
   fetchHistory: (projectId: string) => Promise<void>
   fetchOpenTaskCount: () => Promise<void>
+  fetchAllOpenTasks: () => Promise<void>
 }
 
 export const useProjectStore = create<ProjectStore>((set, get) => ({
@@ -157,5 +158,21 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       .select('*', { count: 'exact', head: true })
       .in('status', ['todo', 'in_progress'])
     set({ openTaskCount: count ?? 0 })
+  },
+
+  fetchAllOpenTasks: async () => {
+    const { data } = await supabase
+      .from('tasks')
+      .select('*')
+      .in('status', ['todo', 'in_progress'])
+      .order('sort_order')
+    if (data) {
+      const grouped: Record<string, Task[]> = {}
+      for (const task of data) {
+        if (!grouped[task.project_id]) grouped[task.project_id] = []
+        grouped[task.project_id].push(task)
+      }
+      set((s) => ({ tasks: { ...s.tasks, ...grouped } }))
+    }
   },
 }))

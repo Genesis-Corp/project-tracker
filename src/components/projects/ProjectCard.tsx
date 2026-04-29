@@ -1,6 +1,6 @@
 import { FolderKanban, Pencil, Trash2, ExternalLink } from 'lucide-react'
 import { formatDistanceToNow, format } from 'date-fns'
-import type { Account, Project } from '../../types'
+import type { Account, Project, Task } from '../../types'
 import { StatusBadge } from '../shared/StatusBadge'
 import { PriorityBadge } from '../shared/PriorityBadge'
 import { TagBadge } from '../shared/TagBadge'
@@ -8,12 +8,14 @@ import { TagBadge } from '../shared/TagBadge'
 interface Props {
   project: Project
   account: Account | undefined
+  openTasks: Task[]
+  onTaskToggle: (taskId: string) => void
   onClick: () => void
   onEdit: (project: Project) => void
   onDelete: (id: string) => void
 }
 
-export function ProjectCard({ project, account, onClick, onEdit, onDelete }: Props) {
+export function ProjectCard({ project, account, openTasks, onTaskToggle, onClick, onEdit, onDelete }: Props) {
   return (
     <div
       className="bg-surface rounded-2xl border border-white/10 border-l-4 border-l-orange-500 p-4 space-y-3 cursor-pointer hover:border-white/20 transition-colors"
@@ -62,6 +64,31 @@ export function ProjectCard({ project, account, onClick, onEdit, onDelete }: Pro
 
       {project.context_snapshot && (
         <p className="text-xs text-gray-500 line-clamp-2">{project.context_snapshot}</p>
+      )}
+
+      {openTasks.length > 0 && (
+        <ul
+          className="space-y-1.5"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {openTasks.map((task) => (
+            <li key={task.id} className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id={`task-${task.id}`}
+                checked={false}
+                onChange={() => onTaskToggle(task.id)}
+                className="w-3.5 h-3.5 rounded accent-orange-500 shrink-0 cursor-pointer"
+              />
+              <label
+                htmlFor={`task-${task.id}`}
+                className="text-xs text-gray-400 cursor-pointer truncate"
+              >
+                {task.title}
+              </label>
+            </li>
+          ))}
+        </ul>
       )}
 
       <div className="flex items-center justify-between">

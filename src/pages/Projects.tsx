@@ -15,7 +15,7 @@ const priorityOrder: Record<string, number> = {
 }
 
 export function Projects() {
-  const { projects, loading, fetch, remove } = useProjectStore()
+  const { projects, tasks, loading, fetch, remove, fetchAllOpenTasks, updateTask } = useProjectStore()
   const { accounts, fetch: fetchAccounts } = useAccountStore()
   const [showForm, setShowForm] = useState(false)
   const [editTarget, setEditTarget] = useState<Project | null>(null)
@@ -24,6 +24,7 @@ export function Projects() {
   useEffect(() => {
     fetch()
     fetchAccounts()
+    fetchAllOpenTasks()
   }, [])
 
   const sorted = [...projects].sort(
@@ -70,6 +71,8 @@ export function Projects() {
               key={project.id}
               project={project}
               account={accounts.find((a) => a.id === project.account_id)}
+              openTasks={tasks[project.id] ?? []}
+              onTaskToggle={(taskId) => updateTask(taskId, { status: 'done' })}
               onClick={() => setDetailTarget(project)}
               onEdit={handleEdit}
               onDelete={remove}
