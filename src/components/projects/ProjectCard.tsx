@@ -1,5 +1,5 @@
 import { FolderKanban, Pencil, Trash2, ExternalLink } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow, format } from 'date-fns'
 import type { Account, Project } from '../../types'
 import { StatusBadge } from '../shared/StatusBadge'
 import { PriorityBadge } from '../shared/PriorityBadge'
@@ -55,7 +55,7 @@ export function ProjectCard({ project, account, onClick, onEdit, onDelete }: Pro
         <PriorityBadge priority={project.priority} />
         {project.due_date && (
           <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-gray-400">
-            Due {new Date(project.due_date).toLocaleDateString()}
+            Due {format(new Date(project.due_date), 'MMM d, yyyy')}
           </span>
         )}
       </div>
