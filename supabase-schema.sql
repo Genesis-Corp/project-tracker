@@ -43,6 +43,7 @@ create table if not exists tasks (
   status text not null default 'todo' check (status in ('todo', 'in_progress', 'done')),
   due_date date,
   sort_order integer not null default 0,
+  completed_at timestamptz,
   created_at timestamptz not null default now()
 );
 
@@ -69,4 +70,5 @@ create table if not exists ideas (
 -- alter table accounts add constraint accounts_login_method_check
 --   check (login_method in ('app', 'browser', 'terminal'));
 -- alter table projects add column if not exists model text not null default '';
+-- alter table tasks add column if not exists completed_at timestamptz;
 -- ────────────────────────────────────────────────────────────────────────────

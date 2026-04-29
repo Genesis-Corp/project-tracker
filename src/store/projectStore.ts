@@ -118,9 +118,27 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   },
 
   updateTask: async (id, updates) => {
-    const { data: row, error } = await supabase.from('tasks').update(updates).eq('id', id).select().single()
+    const task = Object.values(get().tasks).flat().find((t) => t.id === id)
+    const payload = updates.status === 'done'
+      ? { ...updates, completed_at: new Date().toISOString() }
+      : updates
+    const { data: row, error } = await supabase.from('tasks').update(payload).eq('id', id).select().single()
     if (error) throw error
     if (row) {
+      if (updates.status === 'done' && task) {
+        await supabase.from('project_history').insert({
+          project_id: task.project_id,
+          change_summary: `Task completed: "${task.title}"`,
+        })
+        if (get().history[task.project_id]) {
+          const { data: hist } = await supabase
+            .from('project_history')
+            .select('*')
+            .eq('project_id', task.project_id)
+            .order('created_at', { ascending: false })
+          if (hist) set((s) => ({ history: { ...s.history, [task.project_id]: hist } }))
+        }
+      }
       set((s) => ({
         tasks: Object.fromEntries(
           Object.entries(s.tasks).map(([pid, list]) => [
@@ -161,18 +179,17 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   },
 
   fetchAllOpenTasks: async () => {
-    const { data } = await supabase
-      .from('tasks')
-      .select('*')
-      .in('status', ['todo', 'in_progress'])
-      .order('sort_order')
-    if (data) {
-      const grouped: Record<string, Task[]> = {}
-      for (const task of data) {
-        if (!grouped[task.project_id]) grouped[task.project_id] = []
-        grouped[task.project_id].push(task)
-      }
-      set((s) => ({ tasks: { ...s.tasks, ...grouped } }))
+    const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
+    const [openResult, recentDoneResult] = await Promise.all([
+      supabase.from('tasks').select('*').in('status', ['todo', 'in_progress']).order('sort_order'),
+      supabase.from('tasks').select('*').eq('status', 'done').gte('completed_at', cutoff).order('sort_order'),
+    ])
+    const all = [...(openResult.data ?? []), ...(recentDoneResult.data ?? [])]
+    const grouped: Record<string, Task[]> = {}
+    for (const task of all) {
+      if (!grouped[task.project_id]) grouped[task.project_id] = []
+      grouped[task.project_id].push(task)
     }
+    set((s) => ({ tasks: { ...s.tasks, ...grouped } }))
   },
 }))

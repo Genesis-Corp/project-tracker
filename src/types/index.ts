@@ -45,6 +45,7 @@ export interface Task {
   status: TaskStatus
   due_date: string | null
   sort_order: number
+  completed_at: string | null
   created_at: string
 }
 

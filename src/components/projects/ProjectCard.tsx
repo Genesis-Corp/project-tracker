@@ -1,4 +1,4 @@
-import { FolderKanban, Pencil, Trash2, ExternalLink } from 'lucide-react'
+import { FolderKanban, Pencil, Trash2, ExternalLink, CheckCircle2, Circle } from 'lucide-react'
 import { formatDistanceToNow, format } from 'date-fns'
 import type { Account, Project, Task } from '../../types'
 import { StatusBadge } from '../shared/StatusBadge'
@@ -67,28 +67,29 @@ export function ProjectCard({ project, account, openTasks, onTaskToggle, onClick
       )}
 
       {openTasks.length > 0 && (
-        <ul
-          className="space-y-1.5"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {openTasks.map((task) => (
-            <li key={task.id} className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id={`task-${task.id}`}
-                checked={false}
-                onChange={() => onTaskToggle(task.id)}
-                className="w-3.5 h-3.5 rounded accent-orange-500 shrink-0 cursor-pointer"
-              />
-              <label
-                htmlFor={`task-${task.id}`}
-                className="text-xs text-gray-400 cursor-pointer truncate"
-              >
-                {task.title}
-              </label>
-            </li>
-          ))}
-        </ul>
+        <div className="space-y-1.5" onClick={(e) => e.stopPropagation()}>
+          {openTasks.map((task) => {
+            const isDone = task.status === 'done'
+            return (
+              <div key={task.id} className="flex items-center gap-2">
+                <button
+                  onClick={() => !isDone && onTaskToggle(task.id)}
+                  aria-label="Mark task done"
+                  className="shrink-0 transition-opacity"
+                  disabled={isDone}
+                >
+                  {isDone
+                    ? <CheckCircle2 size={14} className="text-green-400" />
+                    : <Circle size={14} className="text-gray-600 hover:text-gray-400" />
+                  }
+                </button>
+                <span className={`text-xs truncate ${isDone ? 'line-through text-gray-600' : 'text-gray-400'}`}>
+                  {task.title}
+                </span>
+              </div>
+            )
+          })}
+        </div>
       )}
 
       <div className="flex items-center justify-between">
