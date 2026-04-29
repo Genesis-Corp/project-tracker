@@ -43,7 +43,7 @@ export function TaskList({ projectId, tasks }: Props) {
         <div key={task.id} className="flex items-center gap-2.5 group py-0.5">
           <button
             onClick={() => updateTask(task.id, { status: nextStatus[task.status] })}
-            aria-label={`Mark task ${task.status === 'done' ? 'todo' : task.status === 'todo' ? 'in progress' : 'done'}`}
+            aria-label="Toggle task status"
             className="shrink-0 transition-opacity"
           >
             <StatusIcon status={task.status} />

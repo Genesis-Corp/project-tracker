@@ -48,7 +48,7 @@ export function ProjectDetail({ project, onClose, onEdit }: Props) {
               )}
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
-              <button onClick={() => onEdit(project)} className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1.5">
+              <button onClick={() => onEdit(project)} aria-label="Edit project" className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1.5">
                 <Pencil size={12} />
                 Edit
               </button>
