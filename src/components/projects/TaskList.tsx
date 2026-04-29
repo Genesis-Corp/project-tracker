@@ -33,6 +33,7 @@ export function TaskList({ projectId, tasks }: Props) {
       status: 'todo',
       due_date: null,
       sort_order: tasks.length,
+      completed_at: null,
     })
     setNewTitle('')
   }

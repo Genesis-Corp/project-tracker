@@ -33,6 +33,7 @@ export function QuickCapture() {
         continued_from_project_id: null,
         context_snapshot: null,
         domain_tags: [],
+        model: '',
       })
     }
 
