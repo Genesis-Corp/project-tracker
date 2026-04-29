@@ -13,6 +13,7 @@ export function Dashboard() {
   const { projects, openTaskCount, fetch: fetchProjects, fetchOpenTaskCount } = useProjectStore()
   const { ideas, fetch: fetchIdeas } = useIdeaStore()
 
+  // Initialize all stores on mount — store fetch functions are stable references
   useEffect(() => {
     fetchAccounts()
     fetchProjects()
