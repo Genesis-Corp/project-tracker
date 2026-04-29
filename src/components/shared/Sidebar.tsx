@@ -15,7 +15,7 @@ const nav: { page: Page; label: string; Icon: React.ElementType; activeColor: st
 
 export function Sidebar({ activePage, setActivePage }: Props) {
   return (
-    <aside className="w-56 min-h-screen bg-surface border-r border-white/10 flex flex-col p-4 shrink-0">
+    <aside className="hidden md:flex w-56 min-h-screen bg-surface border-r border-white/10 flex-col p-4 shrink-0">
       <div className="mb-8 px-1">
         <h1 className="text-lg font-bold text-white">AI Tracker</h1>
         <p className="text-xs text-gray-600 mt-0.5">Your AI command centre</p>

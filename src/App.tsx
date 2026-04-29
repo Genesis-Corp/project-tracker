@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Sidebar } from './components/shared/Sidebar'
+import { BottomNav } from './components/shared/BottomNav'
 import { QuickCapture } from './components/shared/QuickCapture'
 import { Dashboard } from './pages/Dashboard'
 import { Accounts } from './pages/Accounts'
@@ -21,9 +22,10 @@ export default function App() {
   return (
     <div className="flex min-h-screen bg-bg text-white">
       <Sidebar activePage={activePage} setActivePage={setActivePage} />
-      <main className="flex-1 p-6 overflow-auto min-h-screen">
+      <main className="flex-1 p-4 md:p-6 overflow-auto min-h-screen pb-20 md:pb-6">
         {pages[activePage]}
       </main>
+      <BottomNav activePage={activePage} setActivePage={setActivePage} />
       <QuickCapture />
     </div>
   )

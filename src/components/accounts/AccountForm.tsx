@@ -75,14 +75,15 @@ export function AccountForm({ account, onClose }: Props) {
       }
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong. Check your Supabase connection and RLS policies.')
+      const msg = err instanceof Error ? err.message : (err as { message?: string })?.message
+      setError(msg ?? 'Unknown error — check browser console for details.')
     }
   }
 
   return (
     <Modal title={isEdit ? 'Edit Account' : 'Add Account'} onClose={onClose} size="lg">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Field label="Name *">
             <input className="input" value={form.name} onChange={(e) => setField('name', e.target.value)} required />
           </Field>

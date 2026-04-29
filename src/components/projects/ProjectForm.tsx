@@ -83,7 +83,7 @@ export function ProjectForm({ project, accounts, prefill, onClose, onCreated }: 
   return (
     <Modal title={isEdit ? 'Edit Project' : 'New Project'} onClose={onClose} size="lg">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Field label="Name *" className="col-span-2">
             <input className="input" value={form.name} onChange={(e) => setField('name', e.target.value)} required />
           </Field>
