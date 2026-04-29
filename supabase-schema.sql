@@ -1,11 +1,12 @@
 -- Run this in your Supabase SQL editor
+-- If you already ran a previous version, run the migration block at the bottom instead.
 
 create table if not exists accounts (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   platform text not null default '',
-  model text not null default '',
-  login_method text not null default 'browser' check (login_method in ('app', 'browser')),
+  subscription text not null default '',
+  login_method text not null default 'browser' check (login_method in ('app', 'browser', 'terminal')),
   browser text not null default '',
   device text not null default '',
   limit_type text not null default 'messages',
@@ -30,6 +31,7 @@ create table if not exists projects (
   continued_from_project_id uuid references projects(id) on delete set null,
   context_snapshot text,
   domain_tags text[] not null default '{}',
+  model text not null default '',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -60,3 +62,11 @@ create table if not exists ideas (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- ─── Migration: run this if tables already exist ───────────────────────────
+-- alter table accounts rename column model to subscription;
+-- alter table accounts drop constraint if exists accounts_login_method_check;
+-- alter table accounts add constraint accounts_login_method_check
+--   check (login_method in ('app', 'browser', 'terminal'));
+-- alter table projects add column if not exists model text not null default '';
+-- ────────────────────────────────────────────────────────────────────────────

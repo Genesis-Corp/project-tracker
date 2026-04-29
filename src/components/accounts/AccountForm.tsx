@@ -9,7 +9,7 @@ type FormData = Omit<Account, 'id' | 'created_at' | 'updated_at'>
 const defaultForm: FormData = {
   name: '',
   platform: '',
-  model: '',
+  subscription: '',
   login_method: 'browser',
   browser: '',
   device: '',
@@ -34,7 +34,7 @@ export function AccountForm({ account, onClose }: Props) {
       ? {
           name: account.name,
           platform: account.platform,
-          model: account.model,
+          subscription: account.subscription,
           login_method: account.login_method,
           browser: account.browser,
           device: account.device,
@@ -49,6 +49,7 @@ export function AccountForm({ account, onClose }: Props) {
       : defaultForm,
   )
   const [tagInput, setTagInput] = useState('')
+  const [error, setError] = useState<string | null>(null)
   const isEdit = Boolean(account)
 
   function setField<K extends keyof FormData>(key: K, value: FormData[K]) {
@@ -65,12 +66,17 @@ export function AccountForm({ account, onClose }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (isEdit && account) {
-      await update(account.id, form)
-    } else {
-      await add(form)
+    setError(null)
+    try {
+      if (isEdit && account) {
+        await update(account.id, form)
+      } else {
+        await add(form)
+      }
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong. Check your Supabase connection and RLS policies.')
     }
-    onClose()
   }
 
   return (
@@ -83,13 +89,14 @@ export function AccountForm({ account, onClose }: Props) {
           <Field label="Platform *">
             <input className="input" value={form.platform} onChange={(e) => setField('platform', e.target.value)} placeholder="Claude, ChatGPT, Gemini…" required />
           </Field>
-          <Field label="Model">
-            <input className="input" value={form.model} onChange={(e) => setField('model', e.target.value)} placeholder="claude-sonnet-4-6, gpt-4o…" />
+          <Field label="Subscription">
+            <input className="input" value={form.subscription} onChange={(e) => setField('subscription', e.target.value)} placeholder="Pro, Plus, Free…" />
           </Field>
           <Field label="Login method">
-            <select className="input" value={form.login_method} onChange={(e) => setField('login_method', e.target.value as 'app' | 'browser')}>
+            <select className="input" value={form.login_method} onChange={(e) => setField('login_method', e.target.value as Account['login_method'])}>
               <option value="browser">Browser</option>
               <option value="app">App</option>
+              <option value="terminal">Terminal</option>
             </select>
           </Field>
           {form.login_method === 'browser' && (
@@ -108,16 +115,6 @@ export function AccountForm({ account, onClose }: Props) {
           </Field>
           <Field label="Used so far">
             <input className="input" type="number" min={0} value={form.limit_used} onChange={(e) => setField('limit_used', Number(e.target.value))} />
-          </Field>
-          <Field label="Resets at">
-            <input
-              className="input"
-              type="datetime-local"
-              value={form.reset_at ? form.reset_at.slice(0, 16) : ''}
-              onChange={(e) =>
-                setField('reset_at', e.target.value ? new Date(e.target.value).toISOString() : null)
-              }
-            />
           </Field>
           <Field label="Status">
             <select className="input" value={form.status} onChange={(e) => setField('status', e.target.value as Account['status'])}>
@@ -166,6 +163,10 @@ export function AccountForm({ account, onClose }: Props) {
             onChange={(e) => setField('notes', e.target.value)}
           />
         </Field>
+
+        {error && (
+          <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</p>
+        )}
 
         <div className="flex justify-end gap-2 pt-1">
           <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>

@@ -7,8 +7,8 @@ export interface Account {
   id: string
   name: string
   platform: string
-  model: string
-  login_method: 'app' | 'browser'
+  subscription: string
+  login_method: 'app' | 'browser' | 'terminal'
   browser: string
   device: string
   limit_type: string
@@ -33,6 +33,7 @@ export interface Project {
   continued_from_project_id: string | null
   context_snapshot: string | null
   domain_tags: string[]
+  model: string
   created_at: string
   updated_at: string
 }

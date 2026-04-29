@@ -17,6 +17,7 @@ function makeDefault(accounts: Account[]): FormData {
     continued_from_project_id: null,
     context_snapshot: null,
     domain_tags: [],
+    model: '',
   }
 }
 
@@ -42,6 +43,7 @@ export function ProjectForm({ project, accounts, prefill, onClose, onCreated }: 
         continued_from_project_id: project.continued_from_project_id,
         context_snapshot: project.context_snapshot,
         domain_tags: project.domain_tags,
+        model: project.model,
       }
     }
     const d = makeDefault(accounts)
@@ -93,6 +95,10 @@ export function ProjectForm({ project, accounts, prefill, onClose, onCreated }: 
                 <option key={a.id} value={a.id}>{a.name}</option>
               ))}
             </select>
+          </Field>
+
+          <Field label="Model used">
+            <input className="input" value={form.model} onChange={(e) => setField('model', e.target.value)} placeholder="claude-sonnet-4-6, gpt-4o…" />
           </Field>
 
           <Field label="Status">
