@@ -3,6 +3,7 @@ import { Plus } from 'lucide-react'
 import { useIdeaStore } from '../store/ideaStore'
 import { useProjectStore } from '../store/projectStore'
 import { useAccountStore } from '../store/accountStore'
+import { useEmailStore } from '../store/emailStore'
 import { IdeaList } from '../components/ideas/IdeaList'
 import { IdeaForm } from '../components/ideas/IdeaForm'
 import { ProjectForm } from '../components/projects/ProjectForm'
@@ -12,6 +13,7 @@ export function Ideas() {
   const { ideas, loading, fetch, remove, update: updateIdea } = useIdeaStore()
   const { projects, fetch: fetchProjects } = useProjectStore()
   const { accounts, fetch: fetchAccounts } = useAccountStore()
+  const { emails, fetch: fetchEmails } = useEmailStore()
   const [showIdeaForm, setShowIdeaForm] = useState(false)
   const [editIdea, setEditIdea] = useState<Idea | null>(null)
   const [promoteIdea, setPromoteIdea] = useState<Idea | null>(null)
@@ -20,6 +22,7 @@ export function Ideas() {
     fetch()
     fetchProjects()
     fetchAccounts()
+    fetchEmails()
   }, [])
 
   function handleEdit(idea: Idea) {
@@ -77,6 +80,7 @@ export function Ideas() {
       {promoteIdea && (
         <ProjectForm
           accounts={accounts}
+          emails={emails}
           prefill={{ name: promoteIdea.title, context_snapshot: promoteIdea.body ?? undefined }}
           onClose={() => setPromoteIdea(null)}
           onCreated={handleProjectCreated}
