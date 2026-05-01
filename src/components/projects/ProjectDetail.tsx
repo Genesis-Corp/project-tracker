@@ -19,7 +19,7 @@ interface Props {
 export function ProjectDetail({ project, onClose, onEdit }: Props) {
   const { tasks, history, fetchTasks, fetchHistory, projects } = useProjectStore()
   const { accounts } = useAccountStore()
-  const account = accounts.find((a) => a.id === project.account_id)
+  const projectAccounts = accounts.filter((a) => project.account_ids.includes(a.id))
   const linkedFrom = project.continued_from_project_id
     ? projects.find((p) => p.id === project.continued_from_project_id)
     : null
@@ -41,9 +41,9 @@ export function ProjectDetail({ project, onClose, onEdit }: Props) {
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h2 className="text-xl font-bold text-white truncate">{project.name}</h2>
-              {account && (
+              {projectAccounts.length > 0 && (
                 <p className="text-sm text-gray-500 mt-0.5">
-                  {account.name} · {account.platform}
+                  {projectAccounts.map((a) => `${a.name} · ${a.platform}`).join(', ')}
                 </p>
               )}
             </div>

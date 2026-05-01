@@ -7,7 +7,7 @@ import { TagBadge } from '../shared/TagBadge'
 
 interface Props {
   project: Project
-  account: Account | undefined
+  accounts: Account[]
   openTasks: Task[]
   onTaskToggle: (taskId: string) => void
   onClick: () => void
@@ -15,7 +15,7 @@ interface Props {
   onDelete: (id: string) => void
 }
 
-export function ProjectCard({ project, account, openTasks, onTaskToggle, onClick, onEdit, onDelete }: Props) {
+export function ProjectCard({ project, accounts, openTasks, onTaskToggle, onClick, onEdit, onDelete }: Props) {
   return (
     <div
       className="bg-surface rounded-2xl border border-white/10 border-l-4 border-l-orange-500 p-4 space-y-3 cursor-pointer hover:border-white/20 transition-colors"
@@ -26,8 +26,11 @@ export function ProjectCard({ project, account, openTasks, onTaskToggle, onClick
           <FolderKanban size={15} className="text-orange-400 shrink-0" />
           <div className="min-w-0">
             <h3 className="font-semibold text-white text-sm truncate">{project.name}</h3>
-            {account && (
-              <p className="text-xs text-gray-500 truncate">{account.name} · {account.platform}</p>
+            {accounts.length > 0 && (
+              <p className="text-xs text-gray-500 truncate">
+                {accounts[0].name} · {accounts[0].platform}
+                {accounts.length > 1 ? ` +${accounts.length - 1} more` : ''}
+              </p>
             )}
           </div>
         </div>

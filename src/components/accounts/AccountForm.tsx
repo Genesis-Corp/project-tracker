@@ -1,37 +1,43 @@
 import { useState } from 'react'
-import type { Account } from '../../types'
+import type { Account, EmailIdentity } from '../../types'
 import { Modal } from '../shared/Modal'
 import { TagBadge } from '../shared/TagBadge'
 import { useAccountStore } from '../../store/accountStore'
 
 type FormData = Omit<Account, 'id' | 'created_at' | 'updated_at'>
 
-const defaultForm: FormData = {
-  name: '',
-  platform: '',
-  subscription: '',
-  login_method: 'browser',
-  browser: '',
-  device: '',
-  limit_type: 'messages',
-  limit_total: 10,
-  limit_used: 0,
-  reset_at: null,
-  status: 'ready',
-  category_tags: [],
-  notes: '',
+function makeDefault(defaultEmailId?: string): FormData {
+  return {
+    email_id: defaultEmailId ?? null,
+    name: '',
+    platform: '',
+    subscription: '',
+    login_method: 'browser',
+    browser: '',
+    device: '',
+    limit_type: 'messages',
+    limit_total: 10,
+    limit_used: 0,
+    reset_at: null,
+    status: 'ready',
+    category_tags: [],
+    notes: '',
+  }
 }
 
 interface Props {
   account?: Account
+  emails: EmailIdentity[]
+  defaultEmailId?: string
   onClose: () => void
 }
 
-export function AccountForm({ account, onClose }: Props) {
+export function AccountForm({ account, emails, defaultEmailId, onClose }: Props) {
   const { add, update } = useAccountStore()
   const [form, setForm] = useState<FormData>(() =>
     account
       ? {
+          email_id: account.email_id,
           name: account.name,
           platform: account.platform,
           subscription: account.subscription,
@@ -46,7 +52,7 @@ export function AccountForm({ account, onClose }: Props) {
           category_tags: account.category_tags,
           notes: account.notes,
         }
-      : defaultForm,
+      : makeDefault(defaultEmailId)
   )
   const [tagInput, setTagInput] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -84,11 +90,25 @@ export function AccountForm({ account, onClose }: Props) {
     <Modal title={isEdit ? 'Edit Account' : 'Add Account'} onClose={onClose} size="lg">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field label="Email identity">
+            <select
+              className="input"
+              value={form.email_id ?? ''}
+              onChange={(e) => setField('email_id', e.target.value || null)}
+            >
+              <option value="">Unlinked</option>
+              {emails.map((ei) => (
+                <option key={ei.id} value={ei.id}>
+                  {ei.email}{ei.label ? ` (${ei.label})` : ''}
+                </option>
+              ))}
+            </select>
+          </Field>
           <Field label="Name *">
             <input className="input" value={form.name} onChange={(e) => setField('name', e.target.value)} required />
           </Field>
           <Field label="Platform *">
-            <input className="input" value={form.platform} onChange={(e) => setField('platform', e.target.value)} placeholder="Claude, ChatGPT, Gemini…" required />
+            <input className="input" value={form.platform} onChange={(e) => setField('platform', e.target.value)} placeholder="Claude, ChatGPT, Supabase…" required />
           </Field>
           <Field label="Subscription">
             <input className="input" value={form.subscription} onChange={(e) => setField('subscription', e.target.value)} placeholder="Pro, Plus, Free…" />

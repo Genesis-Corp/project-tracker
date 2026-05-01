@@ -11,7 +11,7 @@ export function QuickCapture() {
   const [open, setOpen] = useState(false)
   const [type, setType] = useState<CaptureType>('idea')
   const [title, setTitle] = useState('')
-  const [accountId, setAccountId] = useState('')
+  const [selectedAccountId, setSelectedAccountId] = useState('')
   const { accounts } = useAccountStore()
   const { add: addProject } = useProjectStore()
   const { add: addIdea } = useIdeaStore()
@@ -25,7 +25,7 @@ export function QuickCapture() {
     } else {
       await addProject({
         name: title.trim(),
-        account_id: accountId,
+        account_ids: selectedAccountId ? [selectedAccountId] : [],
         status: 'active',
         priority: 'medium',
         due_date: null,
@@ -38,7 +38,7 @@ export function QuickCapture() {
     }
 
     setTitle('')
-    setAccountId('')
+    setSelectedAccountId('')
     setOpen(false)
   }
 
@@ -82,13 +82,12 @@ export function QuickCapture() {
             {type === 'project' && (
               <select
                 className="input"
-                value={accountId}
-                onChange={(e) => setAccountId(e.target.value)}
-                required
+                value={selectedAccountId}
+                onChange={(e) => setSelectedAccountId(e.target.value)}
               >
-                <option value="">Select account…</option>
+                <option value="">No account (add later)</option>
                 {accounts.map((a) => (
-                  <option key={a.id} value={a.id}>{a.name}</option>
+                  <option key={a.id} value={a.id}>{a.name} · {a.platform}</option>
                 ))}
               </select>
             )}

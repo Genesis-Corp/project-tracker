@@ -1,15 +1,15 @@
 import { useState } from 'react'
-import type { Account, Project } from '../../types'
+import type { Account, EmailIdentity, Project } from '../../types'
 import { Modal } from '../shared/Modal'
 import { TagBadge } from '../shared/TagBadge'
 import { useProjectStore } from '../../store/projectStore'
 
 type FormData = Omit<Project, 'id' | 'created_at' | 'updated_at'>
 
-function makeDefault(accounts: Account[]): FormData {
+function makeDefault(): FormData {
   return {
     name: '',
-    account_id: accounts[0]?.id ?? '',
+    account_ids: [],
     status: 'active',
     priority: 'medium',
     due_date: null,
@@ -24,18 +24,19 @@ function makeDefault(accounts: Account[]): FormData {
 interface Props {
   project?: Project
   accounts: Account[]
+  emails: EmailIdentity[]
   prefill?: { name?: string; context_snapshot?: string }
   onClose: () => void
   onCreated?: (project: Project) => void
 }
 
-export function ProjectForm({ project, accounts, prefill, onClose, onCreated }: Props) {
+export function ProjectForm({ project, accounts, emails, prefill, onClose, onCreated }: Props) {
   const { add, update, projects } = useProjectStore()
   const [form, setForm] = useState<FormData>(() => {
     if (project) {
       return {
         name: project.name,
-        account_id: project.account_id,
+        account_ids: project.account_ids,
         status: project.status,
         priority: project.priority,
         due_date: project.due_date,
@@ -46,7 +47,7 @@ export function ProjectForm({ project, accounts, prefill, onClose, onCreated }: 
         model: project.model,
       }
     }
-    const d = makeDefault(accounts)
+    const d = makeDefault()
     if (prefill?.name) d.name = prefill.name
     if (prefill?.context_snapshot) d.context_snapshot = prefill.context_snapshot
     return d
@@ -56,6 +57,15 @@ export function ProjectForm({ project, accounts, prefill, onClose, onCreated }: 
 
   function setField<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm((f) => ({ ...f, [key]: value }))
+  }
+
+  function toggleAccount(accountId: string) {
+    setField(
+      'account_ids',
+      form.account_ids.includes(accountId)
+        ? form.account_ids.filter((id) => id !== accountId)
+        : [...form.account_ids, accountId]
+    )
   }
 
   function addTag() {
@@ -80,6 +90,13 @@ export function ProjectForm({ project, accounts, prefill, onClose, onCreated }: 
 
   const otherProjects = projects.filter((p) => p.id !== project?.id)
 
+  // Group accounts by email for the selector
+  const accountsByEmail = emails.map((ei) => ({
+    email: ei,
+    accounts: accounts.filter((a) => a.email_id === ei.id),
+  })).filter((g) => g.accounts.length > 0)
+  const unlinkedAccounts = accounts.filter((a) => !a.email_id)
+
   return (
     <Modal title={isEdit ? 'Edit Project' : 'New Project'} onClose={onClose} size="lg">
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -88,13 +105,54 @@ export function ProjectForm({ project, accounts, prefill, onClose, onCreated }: 
             <input className="input" value={form.name} onChange={(e) => setField('name', e.target.value)} required />
           </Field>
 
-          <Field label="Account *">
-            <select className="input" value={form.account_id} onChange={(e) => setField('account_id', e.target.value)} required>
-              <option value="">Select account…</option>
-              {accounts.map((a) => (
-                <option key={a.id} value={a.id}>{a.name}</option>
+          <Field label="Accounts" className="col-span-2">
+            <div className="border border-white/10 rounded-xl p-3 space-y-3 max-h-44 overflow-y-auto">
+              {accountsByEmail.map(({ email, accounts: emailAccounts }) => (
+                <div key={email.id}>
+                  <p className="text-[10px] text-gray-600 mb-1.5 uppercase tracking-wide">{email.email}</p>
+                  <div className="space-y-1">
+                    {emailAccounts.map((a) => (
+                      <label key={a.id} className="flex items-center gap-2 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={form.account_ids.includes(a.id)}
+                          onChange={() => toggleAccount(a.id)}
+                          className="accent-violet-500"
+                        />
+                        <span className="text-xs text-gray-300 group-hover:text-white transition-colors">
+                          {a.name} · {a.platform}
+                          {a.subscription ? ` (${a.subscription})` : ''}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
               ))}
-            </select>
+              {unlinkedAccounts.length > 0 && (
+                <div>
+                  {accountsByEmail.length > 0 && <div className="border-t border-white/5 pt-2" />}
+                  <p className="text-[10px] text-gray-600 mb-1.5 uppercase tracking-wide">Unlinked</p>
+                  <div className="space-y-1">
+                    {unlinkedAccounts.map((a) => (
+                      <label key={a.id} className="flex items-center gap-2 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={form.account_ids.includes(a.id)}
+                          onChange={() => toggleAccount(a.id)}
+                          className="accent-violet-500"
+                        />
+                        <span className="text-xs text-gray-300 group-hover:text-white transition-colors">
+                          {a.name} · {a.platform}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {accounts.length === 0 && (
+                <p className="text-xs text-gray-600 text-center py-2">No accounts yet — add one in the Accounts page</p>
+              )}
+            </div>
           </Field>
 
           <Field label="Model used">

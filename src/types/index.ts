@@ -3,8 +3,18 @@ export type ProjectStatus = 'active' | 'paused' | 'completed' | 'abandoned'
 export type Priority = 'urgent' | 'high' | 'medium' | 'low'
 export type TaskStatus = 'todo' | 'in_progress' | 'done'
 
+export interface EmailIdentity {
+  id: string
+  email: string
+  label: string
+  notes: string
+  created_at: string
+  updated_at: string
+}
+
 export interface Account {
   id: string
+  email_id: string | null
   name: string
   platform: string
   subscription: string
@@ -25,7 +35,7 @@ export interface Account {
 export interface Project {
   id: string
   name: string
-  account_id: string
+  account_ids: string[]
   status: ProjectStatus
   priority: Priority
   due_date: string | null

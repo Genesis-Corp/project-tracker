@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Plus } from 'lucide-react'
 import { useProjectStore } from '../store/projectStore'
 import { useAccountStore } from '../store/accountStore'
+import { useEmailStore } from '../store/emailStore'
 import { ProjectCard } from '../components/projects/ProjectCard'
 import { ProjectForm } from '../components/projects/ProjectForm'
 import { ProjectDetail } from '../components/projects/ProjectDetail'
@@ -17,6 +18,7 @@ const priorityOrder: Record<string, number> = {
 export function Projects() {
   const { projects, tasks, loading, fetch, remove, fetchAllOpenTasks, updateTask } = useProjectStore()
   const { accounts, fetch: fetchAccounts } = useAccountStore()
+  const { emails, fetch: fetchEmails } = useEmailStore()
   const [showForm, setShowForm] = useState(false)
   const [editTarget, setEditTarget] = useState<Project | null>(null)
   const [detailTarget, setDetailTarget] = useState<Project | null>(null)
@@ -24,6 +26,7 @@ export function Projects() {
   useEffect(() => {
     fetch()
     fetchAccounts()
+    fetchEmails()
     fetchAllOpenTasks()
   }, [])
 
@@ -70,7 +73,7 @@ export function Projects() {
             <ProjectCard
               key={project.id}
               project={project}
-              account={accounts.find((a) => a.id === project.account_id)}
+              accounts={accounts.filter((a) => project.account_ids.includes(a.id))}
               openTasks={tasks[project.id] ?? []}
               onTaskToggle={(taskId) => updateTask(taskId, { status: 'done' })}
               onClick={() => setDetailTarget(project)}
@@ -85,6 +88,7 @@ export function Projects() {
         <ProjectForm
           project={editTarget ?? undefined}
           accounts={accounts}
+          emails={emails}
           onClose={handleClose}
         />
       )}

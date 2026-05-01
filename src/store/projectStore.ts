@@ -1,9 +1,19 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
-import type { Project, Task, ProjectHistory } from '../types'
+import type { Project, Task, ProjectHistory, ProjectStatus, Priority } from '../types'
 
 type ProjectInput = Omit<Project, 'id' | 'created_at' | 'updated_at'>
 type TaskInput = Omit<Task, 'id' | 'created_at'>
+
+// Raw row shape returned by Supabase before we map account_ids
+type RawProjectRow = Omit<Project, 'account_ids'> & {
+  project_accounts: { account_id: string }[] | null
+}
+
+function toProject(raw: RawProjectRow): Project {
+  const { project_accounts, ...rest } = raw
+  return { ...rest, account_ids: (project_accounts ?? []).map((pa) => pa.account_id) }
+}
 
 interface ProjectStore {
   projects: Project[]
@@ -34,43 +44,61 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   fetch: async () => {
     set({ loading: true })
     try {
-      const { data } = await supabase.from('projects').select('*').order('created_at', { ascending: false })
-      set({ projects: data ?? [] })
+      const { data } = await supabase
+        .from('projects')
+        .select('*, project_accounts(account_id)')
+        .order('created_at', { ascending: false })
+      set({ projects: (data ?? []).map((row) => toProject(row as RawProjectRow)) })
     } finally {
       set({ loading: false })
     }
   },
 
   add: async (data) => {
-    const { data: row, error } = await supabase.from('projects').insert(data).select().single()
+    const { account_ids, ...projectFields } = data
+    const { data: row, error } = await supabase
+      .from('projects')
+      .insert(projectFields)
+      .select()
+      .single()
     if (error) throw error
-    if (row) set((s) => ({ projects: [row, ...s.projects] }))
-    return row ?? null
+    if (!row) return null
+
+    if (account_ids.length > 0) {
+      await supabase.from('project_accounts').insert(
+        account_ids.map((aid) => ({ project_id: row.id, account_id: aid }))
+      )
+    }
+
+    const project: Project = { ...row, account_ids }
+    set((s) => ({ projects: [project, ...s.projects] }))
+    return project
   },
 
   update: async (id, updates) => {
+    const { account_ids, ...projectFields } = updates
     const current = get().projects.find((p) => p.id === id)
+
     const { data: row, error } = await supabase
       .from('projects')
-      .update({ ...updates, updated_at: new Date().toISOString() })
+      .update({ ...projectFields, updated_at: new Date().toISOString() })
       .eq('id', id)
       .select()
       .single()
     if (error) throw error
 
+    // History entries for status/priority changes
     if (row) {
       const historyEntries: string[] = []
-      if (current?.status !== updates.status && updates.status) {
-        historyEntries.push(`Status changed to ${updates.status}`)
+      if (current?.status !== (updates as { status?: ProjectStatus }).status && (updates as { status?: ProjectStatus }).status) {
+        historyEntries.push(`Status changed to ${(updates as { status?: ProjectStatus }).status}`)
       }
-      if (current?.priority !== updates.priority && updates.priority) {
-        historyEntries.push(`Priority changed to ${updates.priority}`)
+      if (current?.priority !== (updates as { priority?: Priority }).priority && (updates as { priority?: Priority }).priority) {
+        historyEntries.push(`Priority changed to ${(updates as { priority?: Priority }).priority}`)
       }
       for (const summary of historyEntries) {
-        const { error: histError } = await supabase.from('project_history').insert({ project_id: id, change_summary: summary })
-        if (histError) console.error('Failed to log project history:', histError)
+        await supabase.from('project_history').insert({ project_id: id, change_summary: summary })
       }
-      // Only refresh history cache if it was already loaded; fetchHistory will hydrate it fresh when the detail panel opens
       if (historyEntries.length > 0 && get().history[id]) {
         const { data: hist } = await supabase
           .from('project_history')
@@ -79,7 +107,26 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
           .order('created_at', { ascending: false })
         if (hist) set((s) => ({ history: { ...s.history, [id]: hist } }))
       }
-      set((s) => ({ projects: s.projects.map((p) => (p.id === id ? row : p)) }))
+    }
+
+    // Update junction table when account_ids changed
+    let newAccountIds = current?.account_ids ?? []
+    if (account_ids !== undefined) {
+      await supabase.from('project_accounts').delete().eq('project_id', id)
+      if (account_ids.length > 0) {
+        await supabase.from('project_accounts').insert(
+          account_ids.map((aid) => ({ project_id: id, account_id: aid }))
+        )
+      }
+      newAccountIds = account_ids
+    }
+
+    if (row) {
+      set((s) => ({
+        projects: s.projects.map((p) =>
+          p.id === id ? { ...row, account_ids: newAccountIds } : p
+        ),
+      }))
     }
   },
 
